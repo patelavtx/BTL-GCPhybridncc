@@ -46,15 +46,18 @@ gcloud compute instances create gcpspoke1-vm --network gcpspoke1 --subnet gcpspo
 
 
 
+
 ## Documentation Reference:
 
 **Terraform**
 Refer to the Terraform code itself for link references to the resource blocks.
 
 **GCP CloudVPN + NCC**
+
 https://cloud.google.com/network-connectivity/docs/vpn/concepts/overview
 
-https://cloud.google.com/network-connectivity/docs/vpn/deprecations/classic-vpn-deprecation   (classic vpn is an option, but not as flexible and is being deprecated)
+https://cloud.google.com/network-connectivity/docs/vpn/deprecations/classic-vpn-deprecation  
+ (classic vpn is an option, but not as flexible and is being deprecated)
 
 https://cloud.google.com/network-connectivity/docs/vpn/concepts/classic-topologies
 
@@ -64,14 +67,13 @@ https://read.docs.aviatrix.com/HowTos/transit_advanced.html#multi-tier-transit
 
 
 
+
 ### Example of *tfvars 
 
 + These can be passed to the TFC workspace as variables or variable sets.  
 + Note/.  During the TFC workspace connection to the GH repo, you will get the options to add a values to variables specified in the 'variables.tf' file that do not have a 'default' value, recommend this is done prior to running the code.  
 + Other variables that have a default setting can be overridden using 'variables' or 'variable sets' and should not affect the running of the code if not done.
 
-
-Example of 
 
 ```
 #Controller Details:
