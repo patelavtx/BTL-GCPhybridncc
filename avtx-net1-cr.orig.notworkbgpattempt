@@ -1,0 +1,134 @@
+
+# 7  *** network1 cR***
+# https://registry.terraform.io/providers/hashicorp/google/latest/docs/resources/compute_address
+
+#Provision Cloud Router with static ips for  interface and BGP session  for AVTX
+resource "google_compute_address" "cr1_primary_addr" {
+  project      = var.project
+  name         = "${var.network1_name}-cr1-primary-addr"
+  region       = google_compute_subnetwork.network1_subnet1.region
+  subnetwork   = google_compute_subnetwork.network1_subnet1.id 
+  address_type = "INTERNAL"
+  address      = cidrhost(var.subnet1_cidr_range, (pow(2, (32 - tonumber(split("/", var.subnet1_cidr_range)[1]))) - 4))
+}
+
+#Provision Cloud Router redundant interface address
+resource "google_compute_address" "cr1_redundant_addr" {
+  project      = var.project
+  name         = "${var.network1_name}-cr1-redundant-addr"
+  region       = google_compute_subnetwork.network1_subnet1.region
+  subnetwork   = google_compute_subnetwork.network1_subnet1.id 
+  address_type = "INTERNAL"
+  address      = cidrhost(var.subnet1_cidr_range, (pow(2, (32 - tonumber(split("/", var.subnet1_cidr_range)[1]))) - 3))
+}
+
+
+# 7a 
+# https://registry.terraform.io/providers/hashicorp/google/latest/docs/resources/compute_router_interface
+# Create Cloud Router redundant interface first
+# Create Cloud Router redundant interface first
+resource "google_compute_router_interface" "cr1_redundant_interface" {
+  project            = var.project
+  name               = "${var.network1_name}-int-redundant"
+  region             = google_compute_router.network1_cloud_router.region
+  router             = google_compute_router.network1_cloud_router.name
+  subnetwork         = google_compute_subnetwork.network1_subnet1.self_link
+  private_ip_address = google_compute_address.cr1_redundant_addr.address
+}
+
+# Create Cloud Router primary interface, note it references the redundant interface
+resource "google_compute_router_interface" "cr1_primary_interface" {
+  project             = var.project
+  name                = "${var.network1_name}-int-primary"
+ region             = google_compute_router.network1_cloud_router.region
+  router             = google_compute_router.network1_cloud_router.name
+  subnetwork         = google_compute_subnetwork.network1_subnet1.self_link
+  private_ip_address = google_compute_address.cr1_primary_addr.address
+  redundant_interface = google_compute_router_interface.cr1_redundant_interface.name
+}
+
+
+
+# 4
+# https://registry.terraform.io/providers/hashicorp/google/latest/docs/resources/compute_router_peer
+
+# Configure four Cloud Router BGP peers between with Cloud Router primary/redundant interfaces with Aviatrix Primary/HA Transit Gateways in NCC
+resource "google_compute_router_peer" "cr1_primary_int_peer_with_primary_gw" {
+  project                   = var.project
+  name                      = "${var.network1_name}-cr1-pri-int-peer"
+  router                    = google_compute_router.network1_cloud_router.name
+  region                    = var.gcp_region_1
+  peer_ip_address           = module.mc-transit.transit_gateway.bgp_lan_ip_list[0]
+  peer_asn                  = module.mc-transit.transit_gateway.local_as_number
+  interface                 = google_compute_router_interface.cr1_primary_interface.name
+  # ? https://www.googleapis.com/compute/v1
+  router_appliance_instance = "https://www.googleapis.com/compute/v1/projects/apatel-01/zones/europe-west2-b/instances/gcp-native30-mtt1-transit20"
+  depends_on = [
+    google_network_connectivity_spoke.gcp_ncc_spoke
+  ]
+}
+
+resource "google_compute_router_peer" "cr1_primary_int_peer_with_ha_gw" {
+  project                   = var.project
+  name                      = "${var.network1_name}-cr1-pri-int-hapeer"
+  router                    = google_compute_router.network1_cloud_router.name
+  region                    = var.gcp_region_1
+  peer_ip_address           = module.mc-transit.transit_gateway.ha_bgp_lan_ip_list[0]
+  peer_asn                  = module.mc-transit.transit_gateway.local_as_number
+  interface                 = google_compute_router_interface.cr1_primary_interface.name
+  router_appliance_instance = "https://www.googleapis.com/compute/v1/projects/apatel-01/zones/europe-west2-c/instances/gcp-native30-mtt1-transit20-hagw"
+  depends_on = [
+    google_network_connectivity_spoke.gcp_ncc_spoke
+  ]
+}
+
+resource "google_compute_router_peer" "cr1_redundant_int_peer_with_primary_gw" {
+  project                   = var.project
+  name                      = "${var.network1_name}-cr1-red-int-peer"
+  router                    = google_compute_router.network1_cloud_router.name
+  region                    = var.gcp_region_1
+  peer_ip_address           = module.mc-transit.transit_gateway.bgp_lan_ip_list[0]
+  peer_asn                  = module.mc-transit.transit_gateway.local_as_number
+  interface                 = google_compute_router_interface.cr1_redundant_interface.name
+  # ? https://www.googleapis.com/compute/v1
+  router_appliance_instance = "https://www.googleapis.com/compute/v1/projects/apatel-01/zones/europe-west2-b/instances/gcp-native30-mtt1-transit20"
+  depends_on = [
+    google_network_connectivity_spoke.gcp_ncc_spoke
+  ]
+}
+
+resource "google_compute_router_peer" "cr1_redundant_int_peer_with_ha_gw" {
+  project                   = var.project
+  name                      = "${var.network1_name}-cr1-red-int-hapeer"
+  router                    = google_compute_router.network1_cloud_router.name
+  region                    = var.gcp_region_1
+  peer_ip_address           = module.mc-transit.transit_gateway.ha_bgp_lan_ip_list[0]
+  peer_asn                  = module.mc-transit.transit_gateway.local_as_number
+  interface                 = google_compute_router_interface.cr1_redundant_interface.name
+  router_appliance_instance = "https://www.googleapis.com/compute/v1/projects/apatel-01/zones/europe-west2-c/instances/gcp-native30-mtt1-transit20-hagw"
+  depends_on = [
+    google_network_connectivity_spoke.gcp_ncc_spoke
+  ]
+}
+
+
+##  Unable to add bgpolan to gcpnative40 vpc as not on same network ##
+/*
+google_compute_router_peer.cr1_primary_int_peer_with_ha_gw: Creating...
+╷
+│ Error: Error creating RouterBgpPeer: googleapi: Error 400: Invalid value for field 'resource.interfaces[2]': ''. The router appliance instance for BGP Peer "gcp-native40-cr1-pri-int-peer" is not in the same network as the router, invalid
+│
+│   with google_compute_router_peer.cr1_primary_int_peer_with_primary_gw,
+│   on avtx-net1-cr.tf line 56, in resource "google_compute_router_peer" "cr1_primary_int_peer_with_primary_gw":
+│   56: resource "google_compute_router_peer" "cr1_primary_int_peer_with_primary_gw" {
+│
+╵
+╷
+│ Error: Error creating RouterBgpPeer: googleapi: Error 400: Invalid value for field 'resource.interfaces[2]': ''. The router appliance instance for BGP Peer "gcp-native40-cr1-pri-int-hapeer" is not in the same network as the router, invalid
+│
+│   with google_compute_router_peer.cr1_primary_int_peer_with_ha_gw,
+│   on avtx-net1-cr.tf line 71, in resource "google_compute_router_peer" "cr1_primary_int_peer_with_ha_gw":
+│   71: resource "google_compute_router_peer" "cr1_primary_int_peer_with_ha_gw" {
+│
+╵
+*/
