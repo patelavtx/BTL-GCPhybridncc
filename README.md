@@ -9,10 +9,11 @@ between the environments.   Document references are at the bottom of this page.
 ![Architecture](https://github.com/patelavtx/LabShare/blob/main/BTL-Hybridgcpncc.PNG)
 
 
+## Overview
 + Core GCP transit has 'transit_enable_multi_tier_transit : true'  to allow for route propgation in Aviatrix without having to 'full-mesh' peer.
 + The 'MTT transit' facilitates the integration with GCP NCC (route reflector) and native GCP routing constructs to allow for route exchange.+
 + The 'MTT transit' also has transit_enable_multi_tier_transit : true
-+ 'gcpnatve.tf' builds the 'native GCP' environment  (i.e. Network1 and Network2 plus resources - CR, HAVPN and peering)
++ 'gcpnative.tf' builds the 'native GCP' environment  (i.e. Network1 and Network2 plus resources - CR, HAVPN and peering)
 + 'avtx-mtt.tf' builds the Aviatrix transit, NCC, NCC spoke association and Network2 CR peering 
 + 'gcp-nativevm.tf'  is added for convenience to add GCP vms in the native GCP networks and is optional (rename file extension to anything other that 'tf', terraform will ignore)
 
