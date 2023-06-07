@@ -1,4 +1,4 @@
-# BTL-GCPHAvpn-NCC-Avtx
+# BTL-GCPhybridncc
 
 This repo deploys all resources EXCEPT the BTL-core and BTL-spoke1 (refer to diagram below).
 The repo is to simulate connecting an Aviatrix environment to an existing GCP 'brownfield' environment and facilitating connectivity
