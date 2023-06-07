@@ -28,12 +28,13 @@ between the environments.   Document references are at the bottom of this page.
 
 This example shows adding a GCP VM to the 'BTL-spoke1' GCP spoke by leveraging the GCP 'gcloud' API  :
 
-
-*gcloud compute firewall-rules create allow-ssh --direction=INGRESS --priority=1000 --network=gcpspoke1 --action=ALLOW --rules=tcp:22 --source-ranges=0.0.0.0/0
+```
+gcloud compute firewall-rules create allow-ssh --direction=INGRESS --priority=1000 --network=gcpspoke1 --action=ALLOW --rules=tcp:22 --source-ranges=0.0.0.0/0
 gcloud compute firewall-rules create allow-http --direction=INGRESS --priority=1000 --network=gcpspoke1 --action=ALLOW --rules=tcp:80 --source-ranges=0.0.0.0/0
 gcloud compute firewall-rules create allow-icmp --direction=INGRESS --priority=1000 --network=gcpspoke1 --action=ALLOW --rules=icmp --source-ranges=0.0.0.0/0
 
-gcloud compute instances create gcpspoke1-vm --network gcpspoke1 --subnet gcpspoke1 --zone europe-west2-a*
+gcloud compute instances create gcpspoke1-vm --network gcpspoke1 --subnet gcpspoke1 --zone europe-west2-a
+```
 
 
 
