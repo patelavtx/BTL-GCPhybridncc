@@ -1,7 +1,18 @@
 locals {
-  rtr1_bgpcidr_if1 = "169.254.0.0/30"
-  rtr1_bgpcidr_if2 = "169.254.1.0/30"
+  rtr1_bgpcidr_if1 = var.rtr1_bgpcidr_if1
+  rtr1_bgpcidr_if2 = var.rtr1_bgpcidr_if2
   
+}
+
+# bgp peer ip between net1-cr1 and net2-cr2
+variable "rtr1_bgpcidr_if1" {
+  type    = string
+  default = "169.254.0.0/30"
+}
+
+variable "rtr1_bgpcidr_if2" {
+  type    = string
+  default = "169.254.1.0/30"
 }
 
 variable "gcp_region_1" {
