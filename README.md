@@ -4,6 +4,8 @@ This repo deploys all resources EXCEPT the BTL-core and BTL-spoke1 (refer to dia
 The repo is to simulate connecting an Aviatrix environment to an existing GCP 'brownfield' environment and facilitating connectivity
 between the environments.   Document references are at the bottom of this page.
 
+**+   Enable API and Services -  In GCP enable the 'Network Connectivity API**' 
+
 
 ## Architecture
 ![Architecture](https://github.com/patelavtx/LabShare/blob/main/BTL-Hybridgcpncc.PNG)
@@ -44,6 +46,7 @@ gcloud compute instances create gcpspoke1-vm --network gcpspoke1 --subnet gcpspo
 +  BTL-core (Aviatrix transit core deployed)  with "transit_enable_multi_tier_transit : true (transit.yaml),  'MTT transit will peer with this core'
 +  BTL-spoke1 (optional) -  help test out 'end-to-end' connectivity to brownfield (native GCP network)
 
+**+   Enable API and Services -  In GCP enable the 'Network Connectivity API**' 
 
 
 
